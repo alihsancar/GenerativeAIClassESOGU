@@ -1,0 +1,38 @@
+# Model ağırlıkları (büyük dosyalar — Git LFS veya ayrı tutulur)
+weights/
+*.pth
+*.pt
+*.bin
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+*.egg-info/
+dist/
+build/
+.eggs/
+venv/
+env/
+.env
+
+# Jupyter
+.ipynb_checkpoints/
+*.ipynb
+
+# Çıktı görselleri (isteğe bağlı)
+*.png
+*.jpg
+*.jpeg
+!static/img/
+
+# Geçici / OS
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+
+# IDE
+.vscode/
+.idea/
+*.swp

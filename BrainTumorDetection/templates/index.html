@@ -1,0 +1,791 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beyin Tümörü MR Analizi</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;700;800&family=DM+Mono:wght@300;400&family=DM+Sans:ital,wght@0,300;0,400;0,500;1,300&display=swap" rel="stylesheet">
+<style>
+/* ── Reset & Variables ─────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --bg:        #080c12;
+  --surface:   #0e1520;
+  --surface2:  #141c2b;
+  --border:    rgba(255,255,255,0.07);
+  --border2:   rgba(255,255,255,0.12);
+  --text:      #e8edf5;
+  --muted:     #6b7a94;
+  --accent:    #00d4ff;
+  --accent2:   #0066ff;
+  --glioma:    #E63946;
+  --mening:    #457B9D;
+  --notumor:   #2A9D8F;
+  --pituitary: #E9C46A;
+  --radius:    14px;
+  --radius-sm: 8px;
+  --font-display: 'Syne', sans-serif;
+  --font-body:    'DM Sans', sans-serif;
+  --font-mono:    'DM Mono', monospace;
+}
+
+html { scroll-behavior: smooth; }
+
+body {
+  background: var(--bg);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 15px;
+  line-height: 1.6;
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+/* ── Grid Background ───────────────────────────────────────────────────────── */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(0,212,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(0,212,255,0.03) 1px, transparent 1px);
+  background-size: 48px 48px;
+  pointer-events: none;
+  z-index: 0;
+}
+
+/* ── Header ────────────────────────────────────────────────────────────────── */
+header {
+  position: sticky; top: 0; z-index: 100;
+  background: rgba(8,12,18,0.85);
+  backdrop-filter: blur(20px);
+  border-bottom: 1px solid var(--border);
+  padding: 0 2.5rem;
+  height: 64px;
+  display: flex; align-items: center; justify-content: space-between;
+}
+
+.logo {
+  display: flex; align-items: center; gap: 10px;
+  font-family: var(--font-display);
+  font-size: 1.25rem; font-weight: 800;
+  letter-spacing: -0.02em;
+}
+
+.logo-dot {
+  width: 8px; height: 8px; border-radius: 50%;
+  background: var(--accent);
+  box-shadow: 0 0 12px var(--accent);
+  animation: pulse 2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.6; transform: scale(0.8); }
+}
+
+.badge {
+  font-family: var(--font-mono);
+  font-size: 0.68rem;
+  color: var(--muted);
+  border: 1px solid var(--border2);
+  border-radius: 4px;
+  padding: 2px 8px;
+  letter-spacing: 0.06em;
+}
+
+/* ── Main Layout ───────────────────────────────────────────────────────────── */
+main {
+  position: relative; z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 3rem 2rem 5rem;
+}
+
+/* ── Hero ──────────────────────────────────────────────────────────────────── */
+.hero {
+  text-align: center;
+  margin-bottom: 4rem;
+}
+
+.hero-tag {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--accent);
+  letter-spacing: 0.1em;
+  border: 1px solid rgba(0,212,255,0.25);
+  background: rgba(0,212,255,0.06);
+  border-radius: 100px;
+  padding: 4px 14px;
+  margin-bottom: 1.5rem;
+}
+
+.hero h1 {
+  font-family: var(--font-display);
+  font-size: clamp(2.2rem, 5vw, 3.8rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.1;
+  margin-bottom: 1rem;
+  background: linear-gradient(135deg, #ffffff 0%, var(--accent) 100%);
+  -webkit-background-clip: text; -webkit-text-fill-color: transparent;
+}
+
+.hero p {
+  color: var(--muted);
+  font-size: 1rem;
+  max-width: 520px;
+  margin: 0 auto;
+  font-weight: 300;
+}
+
+/* ── Upload Zone ───────────────────────────────────────────────────────────── */
+.upload-section {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2.5rem;
+  margin-bottom: 2rem;
+  transition: border-color .3s;
+}
+
+.upload-section:hover { border-color: var(--border2); }
+
+.drop-zone {
+  border: 2px dashed rgba(0,212,255,0.2);
+  border-radius: var(--radius-sm);
+  padding: 3rem 2rem;
+  text-align: center;
+  cursor: pointer;
+  transition: all .3s;
+  position: relative;
+}
+
+.drop-zone:hover, .drop-zone.dragover {
+  border-color: var(--accent);
+  background: rgba(0,212,255,0.04);
+}
+
+.drop-icon {
+  font-size: 2.8rem;
+  margin-bottom: 1rem;
+  display: block;
+  filter: grayscale(0.3);
+}
+
+.drop-text { font-size: 1rem; color: var(--text); margin-bottom: 0.3rem; }
+.drop-sub  { font-size: 0.82rem; color: var(--muted); }
+
+#fileInput { display: none; }
+
+/* ── Preview & Analyze Button ──────────────────────────────────────────────── */
+.preview-row {
+  display: none;
+  align-items: center; gap: 1.5rem;
+  margin-top: 1.5rem;
+}
+
+.preview-thumb {
+  width: 100px; height: 100px;
+  border-radius: var(--radius-sm);
+  object-fit: cover;
+  border: 1px solid var(--border2);
+}
+
+.preview-info { flex: 1; }
+.preview-name { font-family: var(--font-mono); font-size: 0.82rem; color: var(--text); margin-bottom: 4px; }
+.preview-size { font-size: 0.78rem; color: var(--muted); }
+
+.btn {
+  display: inline-flex; align-items: center; gap: 8px;
+  padding: 12px 28px;
+  border-radius: var(--radius-sm);
+  font-family: var(--font-display);
+  font-size: 0.9rem; font-weight: 700;
+  letter-spacing: 0.02em;
+  border: none; cursor: pointer;
+  transition: all .2s;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--accent2), var(--accent));
+  color: #000;
+  box-shadow: 0 4px 20px rgba(0,212,255,0.25);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 28px rgba(0,212,255,0.35);
+}
+
+.btn-primary:disabled {
+  opacity: 0.5; cursor: not-allowed; transform: none;
+}
+
+.btn-outline {
+  background: transparent;
+  color: var(--text);
+  border: 1px solid var(--border2);
+}
+.btn-outline:hover { border-color: var(--accent); color: var(--accent); }
+
+/* ── Loader ────────────────────────────────────────────────────────────────── */
+.loader {
+  display: none;
+  flex-direction: column; align-items: center; gap: 1rem;
+  padding: 3rem;
+}
+
+.loader-ring {
+  width: 56px; height: 56px;
+  border: 3px solid var(--border2);
+  border-top-color: var(--accent);
+  border-radius: 50%;
+  animation: spin 0.9s linear infinite;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.loader-text {
+  font-family: var(--font-mono);
+  font-size: 0.82rem;
+  color: var(--muted);
+  animation: blink 1.4s ease-in-out infinite;
+}
+
+@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
+
+/* ── Results ───────────────────────────────────────────────────────────────── */
+#results {
+  display: none;
+  animation: fadeUp 0.5s ease forwards;
+}
+
+@keyframes fadeUp {
+  from { opacity: 0; transform: translateY(20px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Verdict Card */
+.verdict-card {
+  border-radius: var(--radius);
+  padding: 2rem 2.5rem;
+  margin-bottom: 1.5rem;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  display: flex; align-items: center; gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.verdict-label {
+  flex: 0 0 auto;
+}
+
+.verdict-badge {
+  display: inline-block;
+  font-family: var(--font-display);
+  font-size: 0.7rem; font-weight: 700;
+  letter-spacing: 0.12em;
+  padding: 4px 12px;
+  border-radius: 100px;
+  margin-bottom: 8px;
+}
+
+.verdict-name {
+  font-family: var(--font-display);
+  font-size: 2.4rem; font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1;
+}
+
+.verdict-desc {
+  flex: 1;
+  color: var(--muted);
+  font-size: 0.9rem;
+  line-height: 1.7;
+  font-weight: 300;
+}
+
+.verdict-conf {
+  flex: 0 0 auto;
+  text-align: center;
+}
+
+.conf-ring-wrap { position: relative; width: 88px; height: 88px; }
+
+.conf-ring-wrap svg {
+  position: absolute; inset: 0;
+  transform: rotate(-90deg);
+}
+
+.conf-ring-bg { fill: none; stroke: var(--border2); stroke-width: 6; }
+.conf-ring-fg { fill: none; stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 1s ease; }
+
+.conf-num {
+  position: absolute; inset: 0;
+  display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-family: var(--font-display);
+  font-size: 1.3rem; font-weight: 800;
+}
+
+.conf-pct { font-family: var(--font-mono); font-size: 0.65rem; color: var(--muted); }
+
+/* Risk pill */
+.risk-pill {
+  display: inline-flex; align-items: center; gap: 6px;
+  font-size: 0.78rem; font-weight: 500;
+  padding: 4px 12px; border-radius: 100px;
+  margin-top: 10px;
+}
+
+/* ── Image Grid ────────────────────────────────────────────────────────────── */
+.img-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 1rem;
+  margin-bottom: 1.5rem;
+}
+
+.img-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  transition: border-color .25s;
+}
+
+.img-card:hover { border-color: var(--border2); }
+
+.img-card img {
+  width: 100%; aspect-ratio: 1;
+  object-fit: cover; display: block;
+}
+
+.img-label {
+  padding: 10px 14px;
+  font-family: var(--font-mono);
+  font-size: 0.72rem;
+  color: var(--muted);
+  border-top: 1px solid var(--border);
+  letter-spacing: 0.04em;
+}
+
+/* ── Probability Bars ──────────────────────────────────────────────────────── */
+.probs-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  margin-bottom: 1.5rem;
+}
+
+.probs-title {
+  font-family: var(--font-display);
+  font-size: 0.8rem; font-weight: 700;
+  letter-spacing: 0.08em;
+  color: var(--muted);
+  text-transform: uppercase;
+  margin-bottom: 1.5rem;
+}
+
+.prob-row {
+  display: flex; align-items: center; gap: 14px;
+  margin-bottom: 1rem;
+}
+
+.prob-label {
+  width: 130px; flex-shrink: 0;
+  font-size: 0.85rem; font-weight: 500;
+}
+
+.prob-track {
+  flex: 1;
+  height: 6px;
+  background: var(--surface2);
+  border-radius: 100px;
+  overflow: hidden;
+}
+
+.prob-fill {
+  height: 100%;
+  border-radius: 100px;
+  width: 0%;
+  transition: width 1s ease;
+}
+
+.prob-val {
+  width: 50px; text-align: right;
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+/* ── Action Row ────────────────────────────────────────────────────────────── */
+.action-row {
+  display: flex; gap: 1rem; flex-wrap: wrap;
+  margin-bottom: 1.5rem;
+}
+
+/* ── Disclaimer ────────────────────────────────────────────────────────────── */
+.disclaimer {
+  background: rgba(233, 196, 106, 0.06);
+  border: 1px solid rgba(233, 196, 106, 0.15);
+  border-radius: var(--radius-sm);
+  padding: 1rem 1.25rem;
+  font-size: 0.8rem;
+  color: #c9a84c;
+  line-height: 1.6;
+}
+
+/* ── Footer ────────────────────────────────────────────────────────────────── */
+footer {
+  position: relative; z-index: 1;
+  border-top: 1px solid var(--border);
+  text-align: center;
+  padding: 2rem;
+  font-size: 0.78rem;
+  color: var(--muted);
+  font-family: var(--font-mono);
+}
+
+/* ── Responsive ────────────────────────────────────────────────────────────── */
+@media (max-width: 700px) {
+  .img-grid { grid-template-columns: 1fr; }
+  .verdict-card { flex-direction: column; gap: 1rem; }
+  header { padding: 0 1.25rem; }
+  main { padding: 2rem 1.25rem 4rem; }
+}
+</style>
+</head>
+<body>
+
+<!-- ── Header ───────────────────────────────────────────────────────────────── -->
+<header>
+  <div class="logo">
+    <div class="logo-dot"></div>
+  </div>
+  <span class="badge">ViT-L/16 @ 384 · TTA · XAI</span>
+</header>
+
+<!-- ── Main ─────────────────────────────────────────────────────────────────── -->
+<main>
+
+  <!-- Hero -->
+  <div class="hero">
+    <div class="hero-tag">
+      <span>◉</span> Vision Transformer · Attention Rollout
+    </div>
+    <h1>Beyin MR'ından<br>Tümör Analizi</h1>
+    <p>MR görüntünüzü yükleyin — yapay zekâ sınıflandırma yapar,<br>
+       dikkat haritasıyla hangi bölgeye baktığını gösterir.</p>
+  </div>
+
+  <!-- Upload -->
+  <div class="upload-section">
+    <div class="drop-zone" id="dropZone">
+      <span class="drop-icon">🧠</span>
+      <p class="drop-text">Görüntüyü buraya sürükleyin veya tıklayın</p>
+      <p class="drop-sub">JPG, PNG, WEBP · Max 20 MB</p>
+      <input type="file" id="fileInput" accept="image/*">
+    </div>
+
+    <div class="preview-row" id="previewRow">
+      <img class="preview-thumb" id="previewThumb" src="" alt="">
+      <div class="preview-info">
+        <div class="preview-name" id="previewName">—</div>
+        <div class="preview-size" id="previewSize">—</div>
+      </div>
+      <button class="btn btn-primary" id="analyzeBtn" onclick="analyze()">
+        <span>🔬</span> Analiz Et
+      </button>
+      <button class="btn btn-outline" onclick="reset()">Sıfırla</button>
+    </div>
+  </div>
+
+  <!-- Loader -->
+  <div class="loader" id="loader">
+    <div class="loader-ring"></div>
+    <div class="loader-text" id="loaderText">Model yükleniyor...</div>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- Verdict -->
+    <div class="verdict-card" id="verdictCard">
+      <div class="verdict-label">
+        <div class="verdict-badge" id="verdictBadge">—</div>
+        <div class="verdict-name" id="verdictName">—</div>
+        <div class="risk-pill" id="riskPill">—</div>
+      </div>
+      <div class="verdict-desc" id="verdictDesc">—</div>
+      <div class="verdict-conf">
+        <div class="conf-ring-wrap">
+          <svg viewBox="0 0 88 88" xmlns="http://www.w3.org/2000/svg">
+            <circle class="conf-ring-bg" cx="44" cy="44" r="38"/>
+            <circle class="conf-ring-fg" id="confRing" cx="44" cy="44" r="38"
+                    stroke-dasharray="238.76" stroke-dashoffset="238.76"/>
+          </svg>
+          <div class="conf-num">
+            <span id="confNum">0</span>
+            <span class="conf-pct">güven</span>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Image Grid -->
+    <div class="img-grid">
+      <div class="img-card">
+        <img id="imgOrig" src="" alt="Orijinal MR">
+        <div class="img-label">01 · Orijinal MR</div>
+      </div>
+      <div class="img-card">
+        <img id="imgAmap" src="" alt="Attention Rollout">
+        <div class="img-label">02 · Attention Rollout</div>
+      </div>
+      <div class="img-card">
+        <img id="imgOver" src="" alt="Overlay">
+        <div class="img-label">03 · Overlay</div>
+      </div>
+    </div>
+
+    <!-- Probabilities -->
+    <div class="probs-card">
+      <div class="probs-title">Sınıf Olasılıkları</div>
+      <div id="probBars"></div>
+    </div>
+
+    <!-- Actions -->
+    <div class="action-row">
+      <button class="btn btn-primary" onclick="downloadPDF()">
+        <span>📄</span> PDF Rapor İndir
+      </button>
+      <button class="btn btn-outline" onclick="reset()">
+        <span>↩</span> Yeni Görüntü
+      </button>
+    </div>
+
+    <!-- Disclaimer -->
+    <div class="disclaimer">
+      ⚠️ Bu analiz yalnızca araştırma amaçlıdır ve klinik tanı yerine geçmez.
+      Kesin tanı için uzman bir radyolog veya nörolog tarafından değerlendirilmelidir.
+    </div>
+  </div>
+
+</main>
+
+<footer>
+  ViT-L/16@384 · Kaggle Brain Tumor MRI · %96 Test Doğruluğu
+</footer>
+
+<script>
+// ── State ────────────────────────────────────────────────────────────────────
+let currentFile = null;
+
+const COLORS = {
+  glioma:    '#E63946',
+  meningioma:'#457B9D',
+  notumor:   '#2A9D8F',
+  pituitary: '#E9C46A',
+};
+
+const CLASS_LABELS = {
+  glioma:    'Glioma',
+  meningioma:'Meningioma',
+  notumor:   'Tümör Yok',
+  pituitary: 'Hipofiz Tümörü',
+};
+
+// ── Drag & Drop ──────────────────────────────────────────────────────────────
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault(); dropZone.classList.remove('dragover');
+  const f = e.dataTransfer.files[0];
+  if (f && f.type.startsWith('image/')) setFile(f);
+});
+fileInput.addEventListener('change', () => { if (fileInput.files[0]) setFile(fileInput.files[0]); });
+
+function setFile(f) {
+  currentFile = f;
+  const url = URL.createObjectURL(f);
+  document.getElementById('previewThumb').src = url;
+  document.getElementById('previewName').textContent = f.name;
+  document.getElementById('previewSize').textContent = (f.size / 1024).toFixed(1) + ' KB';
+  document.getElementById('previewRow').style.display = 'flex';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loader').style.display = 'none';
+}
+
+// ── Loader messages ──────────────────────────────────────────────────────────
+const loaderMsgs = [
+  'Auto-crop uygulanıyor...',
+  'TTA dönüşümleri hesaplanıyor...',
+  'ViT-L/16 @ 384 çalışıyor...',
+  'Attention Rollout üretiliyor...',
+  'Sonuçlar hazırlanıyor...',
+];
+
+function startLoaderCycle() {
+  let i = 0;
+  const el = document.getElementById('loaderText');
+  el.textContent = loaderMsgs[0];
+  return setInterval(() => {
+    i = (i + 1) % loaderMsgs.length;
+    el.textContent = loaderMsgs[i];
+  }, 2000);
+}
+
+// ── Analyze ──────────────────────────────────────────────────────────────────
+async function analyze() {
+  if (!currentFile) return;
+
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loader').style.display = 'flex';
+
+  const cycleId = startLoaderCycle();
+
+  try {
+    const fd = new FormData();
+    fd.append('file', currentFile);
+
+    const res = await fetch('/predict', { method: 'POST', body: fd });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail || 'Sunucu hatası'); }
+    const data = await res.json();
+
+    clearInterval(cycleId);
+    document.getElementById('loader').style.display = 'none';
+    renderResults(data);
+  } catch (err) {
+    clearInterval(cycleId);
+    document.getElementById('loader').style.display = 'none';
+    document.getElementById('analyzeBtn').disabled = false;
+    alert('Hata: ' + err.message);
+  }
+}
+
+// ── Render ───────────────────────────────────────────────────────────────────
+function renderResults(d) {
+  const color = d.color;
+
+  // Verdict
+  const badge = document.getElementById('verdictBadge');
+  badge.textContent = d.label.toUpperCase();
+  badge.style.background = color + '22';
+  badge.style.color = color;
+  badge.style.border = `1px solid ${color}44`;
+
+  document.getElementById('verdictName').textContent = d.label_tr;
+  document.getElementById('verdictName').style.color = color;
+  document.getElementById('verdictDesc').textContent = d.desc;
+
+  const riskColors = { 'Yüksek': '#E63946', 'Orta': '#E9C46A', 'Düşük': '#2A9D8F' };
+  const riskPill = document.getElementById('riskPill');
+  riskPill.textContent = '● Risk: ' + d.risk;
+  riskPill.style.background = (riskColors[d.risk] || '#888') + '18';
+  riskPill.style.color = riskColors[d.risk] || '#888';
+  riskPill.style.border = `1px solid ${(riskColors[d.risk] || '#888')}33`;
+
+  // Confidence ring
+  const pct = d.confidence;
+  const circ = 238.76;
+  const offset = circ - (circ * pct / 100);
+  const ring = document.getElementById('confRing');
+  ring.style.stroke = color;
+  setTimeout(() => ring.style.strokeDashoffset = offset, 100);
+
+  // Animate number
+  const confEl = document.getElementById('confNum');
+  let cur = 0;
+  const step = pct / 40;
+  const timer = setInterval(() => {
+    cur = Math.min(cur + step, pct);
+    confEl.textContent = cur.toFixed(1) + '%';
+    if (cur >= pct) clearInterval(timer);
+  }, 25);
+
+  // Images
+  document.getElementById('imgOrig').src = 'data:image/png;base64,' + d.orig_b64;
+  document.getElementById('imgAmap').src = 'data:image/png;base64,' + d.amap_b64;
+  document.getElementById('imgOver').src = 'data:image/png;base64,' + d.over_b64;
+
+  // Probability bars
+  const container = document.getElementById('probBars');
+  container.innerHTML = '';
+  const order = ['glioma','meningioma','notumor','pituitary'];
+  order.forEach(cls => {
+    const val = d.probs[cls] || 0;
+    const c = COLORS[cls];
+    const row = document.createElement('div');
+    row.className = 'prob-row';
+    row.innerHTML = `
+      <div class="prob-label">${CLASS_LABELS[cls]}</div>
+      <div class="prob-track">
+        <div class="prob-fill" data-val="${val}" style="background:${c}; width:0%"></div>
+      </div>
+      <div class="prob-val">${val.toFixed(1)}%</div>`;
+    container.appendChild(row);
+  });
+  // Animate bars
+  setTimeout(() => {
+    container.querySelectorAll('.prob-fill').forEach(el => {
+      el.style.width = el.dataset.val + '%';
+    });
+  }, 100);
+
+  document.getElementById('results').style.display = 'block';
+  document.getElementById('analyzeBtn').disabled = false;
+
+  // Scroll to results
+  document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+// ── PDF ───────────────────────────────────────────────────────────────────────
+async function downloadPDF() {
+  if (!currentFile) return;
+  const btn = event.currentTarget;
+  btn.disabled = true;
+  btn.innerHTML = '<span>⏳</span> Hazırlanıyor...';
+
+  try {
+    const fd = new FormData();
+    fd.append('file', currentFile);
+    const res = await fetch('/report', { method: 'POST', body: fd });
+    if (!res.ok) { const e = await res.json(); throw new Error(e.detail); }
+
+    const blob = await res.blob();
+    const url  = URL.createObjectURL(blob);
+    const a    = document.createElement('a');
+    a.href = url; a.download = 'BrainTumor_Rapor.pdf';
+    a.click(); URL.revokeObjectURL(url);
+  } catch (err) {
+    alert('PDF hatası: ' + err.message);
+  } finally {
+    btn.disabled = false;
+    btn.innerHTML = '<span>📄</span> PDF Rapor İndir';
+  }
+}
+
+// ── Reset ─────────────────────────────────────────────────────────────────────
+function reset() {
+  currentFile = null;
+  fileInput.value = '';
+  document.getElementById('previewRow').style.display = 'none';
+  document.getElementById('results').style.display = 'none';
+  document.getElementById('loader').style.display = 'none';
+  document.getElementById('analyzeBtn').disabled = false;
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+</script>
+</body>
+</html>
